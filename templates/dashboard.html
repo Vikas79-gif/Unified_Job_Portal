@@ -22,7 +22,7 @@
             <div class="admin-widget-icon">
                 <i class="bi bi-file-earmark-text"></i>
             </div>
-            <h3 class="fw-bold mb-1">{{ applications|length }}</h3>
+            <h3 class="fw-bold mb-1">{{ applications.total }}</h3>
             <p class="text-muted mb-0">Total Applications</p>
         </div>
     </div>
@@ -57,7 +57,7 @@
     <h3 class="fw-bold mb-4">
         <i class="bi bi-briefcase me-2 text-primary"></i>My Applications
     </h3>
-    {% if applications %}
+    {% if applications.items %}
         <div class="table-responsive">
             <table class="table">
                 <thead>
@@ -70,7 +70,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for application in applications %}
+                    {% for application in applications.items %}
                     <tr>
                         <td>
                             <strong>{{ application.job.title }}</strong>
