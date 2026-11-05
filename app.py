@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -40,6 +40,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///job_portal.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/resumes'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3600  # 1 hour cache for static files
+
+# Performance optimizations
+app.config['COMPRESS_REGISTER'] = False  # Disable Flask-Compress if installed
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False  # Minify JSON responses
 
 # Email (SMTP) - configure via environment variables
 app.config['SMTP_HOST'] = os.environ.get('SMTP_HOST', '')
@@ -89,13 +95,20 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     resume_path = db.Column(db.String(255))
-    
-    applications = db.relationship('Application', backref='user', lazy=True)
-    job_alerts = db.relationship('JobAlert', backref='user', lazy=True)
-    notifications = db.relationship('Notification', backref='user', lazy=True)
-    push_subscriptions = db.relationship('PushSubscription', backref='user', lazy=True)
+
+    applications = db.relationship('Application', backref='user', lazy='dynamic')
+    job_alerts = db.relationship('JobAlert', backref='user', lazy='dynamic')
+    notifications = db.relationship('Notification', backref='user', lazy='dynamic')
+    push_subscriptions = db.relationship('PushSubscription', backref='user', lazy='dynamic')
 
 class Job(db.Model):
+    __table_args__ = (
+        db.Index('ix_job_is_active', 'is_active'),
+        db.Index('ix_job_created_at', 'created_at'),
+        db.Index('ix_job_category', 'job_category'),
+        db.Index('ix_job_category_active', 'job_category', 'is_active'),
+        db.Index('ix_job_category_active_created', 'job_category', 'is_active', 'created_at'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     company = db.Column(db.String(200), nullable=False)
@@ -125,6 +138,13 @@ class Job(db.Model):
     applications = db.relationship('Application', backref='job', lazy=True)
 
 class Application(db.Model):
+    __table_args__ = (
+        db.Index('ix_application_user_id', 'user_id'),
+        db.Index('ix_application_job_id', 'job_id'),
+        db.Index('ix_application_status', 'status'),
+        db.Index('ix_application_user_status', 'user_id', 'status'),
+        db.Index('ix_application_applied_at', 'applied_at'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=False)
@@ -133,6 +153,11 @@ class Application(db.Model):
     cover_letter = db.Column(db.Text)
 
 class JobAlert(db.Model):
+    __table_args__ = (
+        db.Index('ix_job_alert_user_id', 'user_id'),
+        db.Index('ix_job_alert_is_active', 'is_active'),
+        db.Index('ix_job_alert_user_active', 'user_id', 'is_active'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     keywords = db.Column(db.String(200))
@@ -144,6 +169,10 @@ class JobAlert(db.Model):
     last_checked_at = db.Column(db.DateTime)  # used by scheduler to only match new jobs
 
 class Notification(db.Model):
+    __table_args__ = (
+        db.Index('ix_notification_user_read', 'user_id', 'is_read'),
+        db.Index('ix_notification_user_created', 'user_id', 'created_at'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     type = db.Column(db.String(50), nullable=False, index=True)  # e.g., application_status, job_match
@@ -170,7 +199,7 @@ class PushSubscription(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 if socketio is not None:
     @socketio.on('connect')
@@ -288,14 +317,22 @@ def create_notification(
             room=f"user_{user_id}",
         )
 
-    user = User.query.get(user_id)
-    if user:
-        if send_email_now and user.email:
-            send_email(user.email, f"[Job Portal] {title}", f"{message}\n\nLogin: http://localhost:5000/dashboard")
-        if push_now:
+    # Send emails asynchronously to avoid blocking response
+    if user_id and send_email_now:
+        import threading
+        def _send_email_async():
+            user = User.query.get(user_id)
+            if user and user.email:
+                send_email(user.email, f"[Job Portal] {title}", f"{message}\n\nLogin: http://localhost:5000/dashboard")
+        threading.Thread(target=_send_email_async, daemon=True).start()
+
+    if push_now:
+        import threading
+        def _send_push_async():
             subs = PushSubscription.query.filter_by(user_id=user_id).all()
             for sub in subs:
                 send_web_push(sub, title=title, message=message, url="/dashboard")
+        threading.Thread(target=_send_push_async, daemon=True).start()
 
     return notification
 
@@ -380,8 +417,11 @@ def match_alerts_for_job(job: Job) -> int:
 
     created = 0
     alerts = JobAlert.query.filter_by(is_active=True).all()
+    # Pre-load all users to avoid N+1 queries
+    alert_user_ids = {a.user_id for a in alerts}
+    users_by_id = {u.id: u for u in User.query.filter(User.id.in_(alert_user_ids)).all()}
     for alert in alerts:
-        user = User.query.get(alert.user_id)
+        user = users_by_id.get(alert.user_id)
         if not user:
             continue
         score, _reasons = score_job_against_alert(job, alert)
@@ -414,9 +454,15 @@ def run_job_alert_matching() -> Dict[str, int]:
     now = datetime.utcnow()
 
     alerts = JobAlert.query.filter_by(is_active=True).all()
+    # Pre-load all users to avoid N+1 queries
+    alert_user_ids = {a.user_id for a in alerts}
+    users_by_id = {u.id: u for u in User.query.filter(User.id.in_(alert_user_ids)).all()}
     for alert in alerts:
         stats["alerts_checked"] += 1
         since = alert.last_checked_at or alert.created_at or now
+        user = users_by_id.get(alert.user_id)
+        if not user:
+            continue
 
         # only scan new-ish jobs since last check
         jobs_q = Job.query.filter(Job.is_active == True, Job.created_at >= since)  # noqa: E712
@@ -459,6 +505,10 @@ def start_scheduler():
         logging.info("[scheduler] APScheduler not installed; scheduler is disabled.")
         return
     if scheduler.running:
+        return
+    # Don't start scheduler in debug mode to avoid double execution
+    if app.debug:
+        logging.info("[scheduler] Skipping scheduler in debug mode")
         return
     interval = max(int(app.config.get("ALERT_MATCH_INTERVAL_MINUTES", 15)), 1)
 
@@ -559,7 +609,8 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user_applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.applied_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    user_applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.applied_at.desc()).paginate(page=page, per_page=10, error_out=False)
     return render_template('dashboard.html', applications=user_applications)
 
 @app.route('/jobs')
@@ -792,7 +843,8 @@ def job_alerts():
         flash('Job alert created successfully!', 'success')
         return redirect(url_for('job_alerts'))
     
-    alerts = JobAlert.query.filter_by(user_id=current_user.id).all()
+    page = request.args.get('page', 1, type=int)
+    alerts = JobAlert.query.filter_by(user_id=current_user.id).order_by(JobAlert.created_at.desc()).paginate(page=page, per_page=10, error_out=False)
     return render_template('job_alerts.html', alerts=alerts)
 
 @app.route('/delete_alert/<int:alert_id>')
@@ -813,10 +865,10 @@ def delete_alert(alert_id):
 @login_required
 @admin_required
 def admin_dashboard():
-    total_jobs = Job.query.count()
-    active_jobs = Job.query.filter_by(is_active=True).count()
-    total_applications = Application.query.count()
-    total_users = User.query.count()
+    total_jobs = db.session.execute(db.select(db.func.count()).select_from(Job)).scalar()
+    active_jobs = db.session.execute(db.select(db.func.count()).select_from(Job).where(Job.is_active == True)).scalar()
+    total_applications = db.session.execute(db.select(db.func.count()).select_from(Application)).scalar()
+    total_users = db.session.execute(db.select(db.func.count()).select_from(User)).scalar()
     
     stats = {
         'total_jobs': total_jobs,
@@ -1059,8 +1111,8 @@ def admin_users():
 @login_required
 @admin_required
 def admin_view_user(user_id):
-    user = User.query.get_or_404(user_id)
-    user_applications = Application.query.filter_by(user_id=user_id).order_by(Application.applied_at.desc()).all()
+    user = db.session.get(User, user_id) or abort(404)
+    user_applications = Application.query.filter_by(user_id=user_id).order_by(Application.applied_at.desc()).limit(50).all()
     return render_template('admin/view_user.html', user=user, applications=user_applications)
 
 @app.route('/admin/user/<int:user_id>/toggle_status')
@@ -1130,7 +1182,7 @@ def migrate_database():
 def seed_sample_jobs(force=False):
     """Seed the database with sample government and private jobs"""
     # Check if jobs already exist (unless forcing)
-    if not force and Job.query.count() > 0:
+    if not force and db.session.execute(db.select(db.func.count()).select_from(Job)).scalar() > 0:
         print("Jobs already exist. Use force=True to add more jobs.")
         return False
     
