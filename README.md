@@ -138,6 +138,132 @@ The application uses SQLite database by default. To use a different database:
 1. Update `SQLALCHEMY_DATABASE_URI` in `app.py`
 2. Change `SECRET_KEY` for production use
 
+## Deployment
+
+### Local Deployment
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Vikas79-gif/Unified_Job_Portal.git
+   cd Unified_Job_Portal
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the application**:
+   ```bash
+   python app.py
+   ```
+
+4. **Access the app**: http://localhost:5000
+
+---
+
+### Deploy to Render.com (Free Tier)
+
+Render offers a free tier that includes:
+- 750 hours/month of instance time
+- 512 MB RAM
+- 10 GB bandwidth/month
+- Auto-sleep after 90 minutes of inactivity
+
+**Steps:**
+
+1. Go to **https://render.com** and sign up/login with GitHub
+2. Click **"New +"** → **"Web Service"**
+3. Connect your repository: `Vikas79-gif/Unified_Job_Portal`
+4. Configure the service:
+   | Setting | Value |
+   |---------|-------|
+   | Name | `unified-job-portal` |
+   | Environment | `Python 3` |
+   | Build Command | `pip install -r requirements.txt` |
+   | Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT` |
+   | Region | Select closest to your users |
+5. Click **"Create Web Service"**
+6. Wait 3-5 minutes for deployment
+7. Your live URL: **https://unified-job-portal.onrender.com**
+
+**Optional Environment Variables** (add in Render dashboard):
+- `SECRET_KEY` - Generate a random secure key
+- `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` - For email notifications
+
+---
+
+### Deploy to PythonAnywhere (Free Tier)
+
+PythonAnywhere offers a completely free plan with no sleep:
+- 24/7 uptime (no auto-sleep)
+- 512 MB RAM
+- 1 GB storage
+
+**Steps:**
+
+1. Go to **https://www.pythonanywhere.com** and sign up (free tier)
+2. Go to **"Web"** tab → **"Add a new web app"**
+3. Choose **"Manual configuration"** → **Next**
+4. Select **Python 3.11** → **Next**
+5. In the **WSGI Configuration File** section, paste:
+   ```python
+   import sys
+   sys.path.insert(0, '/home/YourUsername/Unified_Job_Portal')
+   from app import app as application
+   ```
+   Replace `YourUsername` with your PythonAnywhere username
+6. Go to **"Consoles"** → **"Bash"** and run:
+   ```bash
+   cd ~/Unified_Job_Portal
+   pip install -r requirements.txt
+   ```
+7. Go back to **"Web"** tab and click **"Reload"**
+8. Your live URL: **https://YourUsername.pythonanywhere.com**
+
+---
+
+### Deploy to Railway (Free Tier)
+
+Railway offers 500 free execution hours per month.
+
+**Steps:**
+
+1. Go to **https://railway.app** and sign up with GitHub
+2. Click **"New Project"** → **"Deploy from GitHub repo"**
+3. Select `Unified_Job_Portal` repository
+4. Railway will auto-detect it's a Python project
+5. Add a **Procfile** with content:
+   ```
+   web: gunicorn app:app --bind 0.0.0.0:$PORT
+   ```
+6. Click **"Deploy"**
+7. Get your live URL from the dashboard
+
+---
+
+### Required Files for Deployment
+
+Create these files in your project root before deploying:
+
+**Procfile** (for Railway/Gunicorn):
+```
+web: gunicorn app:app --bind 0.0.0.0:$PORT
+```
+
+**render.yaml** (for Render):
+```yaml
+services:
+  - type: web
+    name: unified-job-portal
+    env: python
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+```
+
+---
+
 ## Future Enhancements
 
 - Email notifications for job alerts
