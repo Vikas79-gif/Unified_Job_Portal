@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Add Job - Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Add New Job</h2>
+                <p class="text-muted">Post a new job opportunity</p>
+            </div>
+            <form method="POST" action="{{ url_for('admin_add_job') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="title" class="form-label">Job Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="company" class="form-label">Company/Organization *</label>
+                        <input type="text" class="form-control" id="company" name="company" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="location" class="form-label">Location *</label>
+                        <input type="text" class="form-control" id="location" name="location" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="job_category" class="form-label">Job Category *</label>
+                        <select class="form-select" id="job_category" name="job_category" required>
+                            <option value="">Select...</option>
+                            <option value="Government">Government</option>
+                            <option value="Private">Private</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="category" class="form-label">Industry Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Select...</option>
+                            <option value="IT">IT</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Sales">Sales</option>
+                            <option value="HR">HR</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="job_type" class="form-label">Job Type</label>
+                        <select class="form-select" id="job_type" name="job_type">
+                            <option value="">Select...</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Temporary">Temporary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="experience_required" class="form-label">Experience Required</label>
+                        <input type="text" class="form-control" id="experience_required" name="experience_required" placeholder="e.g., 2-5 years">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="deadline" class="form-label">Application Deadline</label>
+                        <input type="date" class="form-control" id="deadline" name="deadline">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="salary_min" class="form-label">Minimum Salary</label>
+                        <input type="number" class="form-control" id="salary_min" name="salary_min" step="0.01" placeholder="e.g., 50000">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="salary_max" class="form-label">Maximum Salary</label>
+                        <input type="number" class="form-control" id="salary_max" name="salary_max" step="0.01" placeholder="e.g., 80000">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Job Description *</label>
+                    <textarea class="form-control" id="description" name="description" rows="6" required placeholder="Describe the job role, responsibilities, and what you're looking for..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="requirements" class="form-label">Requirements</label>
+                    <textarea class="form-control" id="requirements" name="requirements" rows="4" placeholder="List the required qualifications, skills, and experience..."></textarea>
+                </div>
+                
+                <!-- Government Job Specific Fields -->
+                <div id="governmentFields" style="display: none;">
+                    <hr class="my-4">
+                    <h5 class="fw-bold mb-3 text-primary">
+                        <i class="bi bi-building me-2"></i>Government Job Details
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="age_limit" class="form-label">Age Limit</label>
+                            <input type="text" class="form-control" id="age_limit" name="age_limit" placeholder="e.g., 18-30 years, 21-35 years">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="pay_scale" class="form-label">Pay Scale</label>
+                            <input type="text" class="form-control" id="pay_scale" name="pay_scale" placeholder="e.g., Level 5, Rs. 29,200 - Rs. 92,300">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="application_start_date" class="form-label">Application Start Date</label>
+                            <input type="date" class="form-control" id="application_start_date" name="application_start_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="application_end_date" class="form-label">Application End Date</label>
+                            <input type="date" class="form-control" id="application_end_date" name="application_end_date">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exam_pattern" class="form-label">Exam Pattern & Selection Stages</label>
+                        <textarea class="form-control" id="exam_pattern" name="exam_pattern" rows="4" placeholder="e.g., Prelims + Mains + Interview&#10;Prelims: Objective type, 100 questions&#10;Mains: Descriptive type&#10;Interview: Personal interview"></textarea>
+                        <small class="text-muted">Describe the selection process: Written exams, Physical tests, Document verification, Interviews, etc.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="official_notification_link" class="form-label">Official Notification PDF Link</label>
+                        <input type="url" class="form-control" id="official_notification_link" name="official_notification_link" placeholder="https://example.com/notification.pdf">
+                    </div>
+                    <div class="mb-3">
+                        <label for="official_website_link" class="form-label">Official Application Website Link *</label>
+                        <input type="url" class="form-control" id="official_website_link" name="official_website_link" placeholder="https://example.com/apply" required>
+                        <small class="text-muted">This is where users will be redirected when they click Apply</small>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>Post Job
+                    </button>
+                    <a href="{{ url_for('admin_jobs') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const jobCategorySelect = document.getElementById('job_category');
+    const governmentFields = document.getElementById('governmentFields');
+    const officialWebsiteLink = document.getElementById('official_website_link');
+    
+    function toggleGovernmentFields() {
+        if (jobCategorySelect.value === 'Government') {
+            governmentFields.style.display = 'block';
+            officialWebsiteLink.required = true;
+        } else {
+            governmentFields.style.display = 'none';
+            officialWebsiteLink.required = false;
+        }
+    }
+    
+    jobCategorySelect.addEventListener('change', toggleGovernmentFields);
+    toggleGovernmentFields(); // Initial check
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Resume - Unified Job Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        border: 3px dashed var(--gray-300);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-3xl);
+        text-align: center;
+        transition: all var(--transition-base);
+        background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+    }
+    .upload-area:hover {
+        border-color: var(--primary-blue);
+        background: linear-gradient(135deg, white 0%, var(--gray-50) 100%);
+    }
+    .upload-area.dragover {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Upload Your Resume</h2>
+                <p class="text-muted">Showcase your skills and experience to employers</p>
+            </div>
+
+            {% if current_user.resume_path %}
+            <div class="alert alert-success rounded-lg mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong>Resume Uploaded</strong>
+                        <p class="mb-0 small">Your resume is ready for job applications</p>
+                    </div>
+                    <a href="{{ url_for('download_resume', filename=current_user.resume_path) }}" class="btn btn-sm btn-outline-success" target="_blank">
+                        <i class="bi bi-download me-1"></i>Download
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('upload_resume') }}" enctype="multipart/form-data" id="resumeForm">
+                <div class="upload-area mb-4" id="uploadArea">
+                    <i class="bi bi-cloud-upload fs-1 text-primary mb-3 d-block"></i>
+                    <h5 class="fw-bold mb-2">Drag & Drop Your Resume</h5>
+                    <p class="text-muted mb-3">or click to browse</p>
+                    <input type="file" class="form-control d-none" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                    <label for="resume" class="btn btn-primary">
+                        <i class="bi bi-folder2-open me-2"></i>Choose File
+                    </label>
+                    <p class="text-muted small mt-3 mb-0">Accepted formats: PDF, DOC, DOCX (Max 16MB)</p>
+                    <p class="text-muted small" id="fileName"></p>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                        <i class="bi bi-upload me-2"></i>Upload Resume
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('resume');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            fileName.textContent = 'Selected: ' + e.target.files[0].name;
+            submitBtn.disabled = false;
+        }
+    });
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            fileName.textContent = 'Selected: ' + e.dataTransfer.files[0].name;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="premium-card mb-4">
+    <!-- Job Header -->
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <span class="job-badge badge-{{ 'government' if job.job_category == 'Government' else 'private' }} mb-3">
+                {{ job.job_category }}
+            </span>
+            <h1 class="fw-bold mb-2">{{ job.title }}</h1>
+            <h4 class="text-muted mb-4">{{ job.company }}</h4>
+        </div>
+        {% if job.job_category == 'Government' %}
+            {% if job.official_website_link %}
+            <a href="{{ job.official_website_link }}" target="_blank" class="btn btn-primary btn-lg">
+                <i class="bi bi-box-arrow-up-right me-2"></i>Apply on Official Website
+            </a>
+            {% else %}
+            <div class="alert alert-warning mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>Official application link not available
+            </div>
+            {% endif %}
+        {% else %}
+            {% if current_user.is_authenticated and not has_applied %}
+            <a href="{{ url_for('apply_job', job_id=job.id) }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-send me-2"></i>Apply Now
+            </a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Quick Info -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="d-flex align-items-center p-3 bg-light rounded-lg">
+                <i class="bi bi-geo-alt-fill text-primary me-3 fs-4"></i>
+                <div>
+                    <small class="text-muted d-block">Location</small>
+                    <strong>{{ job.location }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex align-items-center p-3 bg-light rounded-lg">
+                <i class="bi bi-briefcase-fill text-primary me-3 fs-4"></i>
+                <div>
+                    <small class="text-muted d-block">Job Type</small>
+                    <strong>{{ job.job_type }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex align-items-center p-3 bg-light rounded-lg">
+                <i class="bi bi-tag-fill text-primary me-3 fs-4"></i>
+                <div>
+                    <small class="text-muted d-block">Category</small>
+                    <strong>{{ job.category }}</strong>
+                </div>
+            </div>
+        </div>
+        {% if job.job_category == 'Government' and job.pay_scale %}
+        <div class="col-md-3">
+            <div class="d-flex align-items-center p-3 bg-light rounded-lg">
+                <i class="bi bi-currency-rupee text-success me-3 fs-4"></i>
+                <div>
+                    <small class="text-muted d-block">Pay Scale</small>
+                    <strong>{{ job.pay_scale }}</strong>
+                </div>
+            </div>
+        </div>
+        {% elif job.salary_min %}
+        <div class="col-md-3">
+            <div class="d-flex align-items-center p-3 bg-light rounded-lg">
+                <i class="bi bi-currency-rupee text-success me-3 fs-4"></i>
+                <div>
+                    <small class="text-muted d-block">Salary</small>
+                    <strong>₹{{ "%.0f"|format(job.salary_min) }} - ₹{{ "%.0f"|format(job.salary_max) }}</strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <hr class="my-4">
+
+    <!-- Role Summary -->
+    <div class="mb-4">
+        <h3 class="fw-bold mb-3">
+            <i class="bi bi-file-text me-2 text-primary"></i>Role Summary
+        </h3>
+        <div class="p-4 bg-light rounded-lg">
+            <p class="mb-0" style="white-space: pre-line;">{{ job.description }}</p>
+        </div>
+    </div>
+
+    <!-- Requirements -->
+    {% if job.requirements %}
+    <div class="mb-4">
+        <h3 class="fw-bold mb-3">
+            <i class="bi bi-list-check me-2 text-primary"></i>Requirements
+        </h3>
+        <div class="p-4 bg-light rounded-lg">
+            <p class="mb-0" style="white-space: pre-line;">{{ job.requirements }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Government Job Specific Information -->
+    {% if job.job_category == 'Government' %}
+    <div class="premium-card bg-primary bg-opacity-10 border border-primary mb-4">
+        <h3 class="fw-bold text-primary mb-4">
+            <i class="bi bi-building me-2"></i>Government Job Details
+        </h3>
+        <div class="row g-3">
+            {% if job.age_limit %}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-lg">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-calendar-event me-1"></i>Age Limit
+                    </small>
+                    <strong>{{ job.age_limit }}</strong>
+                </div>
+            </div>
+            {% endif %}
+            {% if job.application_start_date %}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-lg">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-calendar-check me-1"></i>Application Start Date
+                    </small>
+                    <strong>{{ job.application_start_date.strftime('%B %d, %Y') }}</strong>
+                </div>
+            </div>
+            {% endif %}
+            {% if job.application_end_date %}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-lg">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-calendar-x me-1"></i>Application End Date
+                    </small>
+                    <strong>{{ job.application_end_date.strftime('%B %d, %Y') }}</strong>
+                </div>
+            </div>
+            {% endif %}
+            {% if job.experience_required %}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-lg">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-briefcase me-1"></i>Experience Required
+                    </small>
+                    <strong>{{ job.experience_required }}</strong>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if job.exam_pattern %}
+        <div class="mt-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-clipboard-check me-2"></i>Exam Pattern & Selection Process
+            </h5>
+            <div class="p-4 bg-white rounded-lg">
+                <p class="mb-0" style="white-space: pre-line;">{{ job.exam_pattern }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mt-4 d-flex gap-3 flex-wrap">
+            {% if job.official_notification_link %}
+            <a href="{{ job.official_notification_link }}" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-file-pdf me-2"></i>View Official Notification PDF
+            </a>
+            {% endif %}
+            {% if job.official_website_link %}
+            <a href="{{ job.official_website_link }}" target="_blank" class="btn btn-primary">
+                <i class="bi bi-box-arrow-up-right me-2"></i>Apply on Official Website
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="alert alert-info mt-4 mb-0">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> This is a government job notification. Applications must be submitted through the official government website. Our portal only displays the notification and redirects you to the official application portal.
+        </div>
+    </div>
+    {% else %}
+    <!-- Private Job Additional Details -->
+    <div class="row g-3 mb-4">
+        {% if job.experience_required %}
+        <div class="col-md-6">
+            <div class="p-3 border rounded-lg">
+                <small class="text-muted d-block mb-1">Experience Required</small>
+                <strong>{{ job.experience_required }}</strong>
+            </div>
+        </div>
+        {% endif %}
+        {% if job.deadline %}
+        <div class="col-md-6">
+            <div class="p-3 border rounded-lg">
+                <small class="text-muted d-block mb-1">Application Deadline</small>
+                <strong>{{ job.deadline.strftime('%B %d, %Y') }}</strong>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Apply Bar -->
+    {% if job.job_category == 'Government' %}
+    <div class="premium-card bg-gradient-primary text-white mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-1">Apply on Official Website</h5>
+                <p class="mb-0 opacity-75">Click below to be redirected to the official government application portal</p>
+            </div>
+            <div>
+                {% if job.official_website_link %}
+                    <a href="{{ job.official_website_link }}" target="_blank" class="btn btn-light btn-lg">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Apply on Official Website
+                    </a>
+                {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Official application link not available
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="premium-card bg-gradient-primary text-white mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-1">Ready to Apply?</h5>
+                <p class="mb-0 opacity-75">Submit your application and take the next step in your career</p>
+            </div>
+            <div>
+                {% if current_user.is_authenticated %}
+                    {% if has_applied %}
+                        <div class="alert alert-light mb-0">
+                            <i class="bi bi-check-circle me-2"></i>You have already applied for this job.
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('apply_job', job_id=job.id) }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-send me-2"></i>Apply Now
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Apply
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('jobs') }}" class="btn btn-outline-primary">
+    <i class="bi bi-arrow-left me-2"></i>Back to Jobs
+</a>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Jobs - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold">Browse Jobs</h1>
+    <span class="badge bg-primary fs-6 px-3 py-2">{{ jobs.total }} Jobs Found</span>
+</div>
+
+<!-- Collapsible Filters -->
+<div class="filter-section mb-4">
+    <div class="filter-toggle d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-funnel me-2"></i>Filter Jobs
+        </h5>
+        <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="filterCollapse">
+        <div class="filter-content">
+            <form method="GET" action="{{ url_for('jobs') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Search</label>
+                    <input type="text" class="form-control" name="search" value="{{ search }}" placeholder="Job title, company...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Job Type</label>
+                    <select class="form-select" name="job_category">
+                        <option value="">All Types</option>
+                        <option value="Government" {{ 'selected' if job_category == 'Government' }}>Government</option>
+                        <option value="Private" {{ 'selected' if job_category == 'Private' }}>Private</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Category</label>
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <option value="IT" {{ 'selected' if category == 'IT' }}>IT</option>
+                        <option value="Healthcare" {{ 'selected' if category == 'Healthcare' }}>Healthcare</option>
+                        <option value="Education" {{ 'selected' if category == 'Education' }}>Education</option>
+                        <option value="Finance" {{ 'selected' if category == 'Finance' }}>Finance</option>
+                        <option value="Engineering" {{ 'selected' if category == 'Engineering' }}>Engineering</option>
+                        <option value="Marketing" {{ 'selected' if category == 'Marketing' }}>Marketing</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Location</label>
+                    <input type="text" class="form-control" name="location" value="{{ location }}" placeholder="City, State...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Job Type</label>
+                    <select class="form-select" name="job_type">
+                        <option value="">All</option>
+                        <option value="Full-time" {{ 'selected' if job_type == 'Full-time' }}>Full-time</option>
+                        <option value="Part-time" {{ 'selected' if job_type == 'Part-time' }}>Part-time</option>
+                        <option value="Contract" {{ 'selected' if job_type == 'Contract' }}>Contract</option>
+                        <option value="Internship" {{ 'selected' if job_type == 'Internship' }}>Internship</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Job Results -->
+{% if jobs.items %}
+<div class="row g-4">
+    {% for job in jobs.items %}
+    <div class="col-12">
+        <div class="job-card">
+            <div class="row align-items-center">
+                <div class="col-md-1 text-center">
+                    <div class="premium-card-icon" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="job-card-header mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ job.title }}</h5>
+                            <h6 class="text-muted mb-2">{{ job.company }}</h6>
+                        </div>
+                        <span class="job-badge badge-{{ 'government' if job.job_category == 'Government' else 'private' }}">
+                            {{ job.job_category }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark me-2">
+                            <i class="bi bi-geo-alt me-1"></i>{{ job.location }}
+                        </span>
+                        <span class="badge bg-light text-dark me-2">
+                            <i class="bi bi-briefcase me-1"></i>{{ job.job_type }}
+                        </span>
+                        <span class="badge bg-light text-dark me-2">
+                            <i class="bi bi-tag me-1"></i>{{ job.category }}
+                        </span>
+                        {% if job.salary_min %}
+                        <span class="badge bg-success text-white">
+                            <i class="bi bi-currency-rupee me-1"></i>{{ "%.0f"|format(job.salary_min) }} - {{ "%.0f"|format(job.salary_max) }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mb-0">{{ job.description[:150] }}...</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-primary btn-lg w-100 mb-2">
+                        <i class="bi bi-eye me-2"></i>View Details
+                    </a>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>Posted {{ job.created_at.strftime('%b %d, %Y') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if jobs.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('jobs', page=jobs.prev_num, search=search, job_category=job_category, category=category, location=location, job_type=job_type) }}">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </a>
+            </li>
+        {% endif %}
+        {% for page_num in jobs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == jobs.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('jobs', page=page_num, search=search, job_category=job_category, category=category, location=location, job_type=job_type) }}">{{ page_num }}</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        {% if jobs.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('jobs', page=jobs.next_num, search=search, job_category=job_category, category=category, location=location, job_type=job_type) }}">
+                    Next <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% else %}
+<div class="alert alert-info rounded-premium">
+    <i class="bi bi-info-circle me-2"></i>No jobs found matching your criteria. Try adjusting your filters.
+</div>
+{% endif %}
+{% endblock %}

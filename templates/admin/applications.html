@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Applications - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">
+        <i class="bi bi-file-earmark-text me-2 text-primary"></i>Job Applications
+    </h2>
+</div>
+
+{% if applications.items %}
+<div class="premium-card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Applicant</th>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications.items %}
+                <tr>
+                    <td>
+                        <div>
+                            <strong>{{ application.user.full_name or application.user.username }}</strong>
+                        </div>
+                        <small class="text-muted">{{ application.user.email }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ application.job.title }}</strong>
+                    </td>
+                    <td>{{ application.job.company }}</td>
+                    <td>{{ application.applied_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_update_application_status', app_id=application.id) }}" class="d-inline">
+                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 140px;">
+                                {% if application.status not in ['Shortlisted', 'Rejected'] %}
+                                <option value="" selected disabled>Current: Pending</option>
+                                {% endif %}
+                                <option value="Shortlisted" {{ 'selected' if application.status == 'Shortlisted' }}>Shortlisted</option>
+                                <option value="Rejected" {{ 'selected' if application.status == 'Rejected' }}>Rejected</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('job_detail', job_id=application.job.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-eye"></i> View Job
+                        </a>
+                        {% if application.user.resume_path %}
+                        <a href="{{ url_for('download_resume', filename=application.user.resume_path) }}" class="btn btn-sm btn-outline-info" target="_blank">
+                            <i class="bi bi-download"></i> Resume
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if applications.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_applications', page=applications.prev_num) }}">Previous</a>
+                </li>
+            {% endif %}
+            {% for page_num in applications.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == applications.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_applications', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            {% if applications.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_applications', page=applications.next_num) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% else %}
+<div class="alert alert-info rounded-premium">
+    <i class="bi bi-info-circle me-2"></i>No applications found.
+</div>
+{% endif %}
+{% endblock %}

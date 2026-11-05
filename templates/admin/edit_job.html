@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job - Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3">
+                    <i class="bi bi-pencil"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Edit Job</h2>
+                <p class="text-muted">Update job information</p>
+            </div>
+            <form method="POST" action="{{ url_for('admin_edit_job', job_id=job.id) }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="title" class="form-label">Job Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ job.title }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="company" class="form-label">Company/Organization *</label>
+                        <input type="text" class="form-control" id="company" name="company" value="{{ job.company }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="location" class="form-label">Location *</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ job.location }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="job_category" class="form-label">Job Category *</label>
+                        <select class="form-select" id="job_category" name="job_category" required>
+                            <option value="Government" {{ 'selected' if job.job_category == 'Government' }}>Government</option>
+                            <option value="Private" {{ 'selected' if job.job_category == 'Private' }}>Private</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="category" class="form-label">Industry Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Select...</option>
+                            <option value="IT" {{ 'selected' if job.category == 'IT' }}>IT</option>
+                            <option value="Healthcare" {{ 'selected' if job.category == 'Healthcare' }}>Healthcare</option>
+                            <option value="Education" {{ 'selected' if job.category == 'Education' }}>Education</option>
+                            <option value="Finance" {{ 'selected' if job.category == 'Finance' }}>Finance</option>
+                            <option value="Engineering" {{ 'selected' if job.category == 'Engineering' }}>Engineering</option>
+                            <option value="Marketing" {{ 'selected' if job.category == 'Marketing' }}>Marketing</option>
+                            <option value="Sales" {{ 'selected' if job.category == 'Sales' }}>Sales</option>
+                            <option value="HR" {{ 'selected' if job.category == 'HR' }}>HR</option>
+                            <option value="Other" {{ 'selected' if job.category == 'Other' }}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="job_type" class="form-label">Job Type</label>
+                        <select class="form-select" id="job_type" name="job_type">
+                            <option value="">Select...</option>
+                            <option value="Full-time" {{ 'selected' if job.job_type == 'Full-time' }}>Full-time</option>
+                            <option value="Part-time" {{ 'selected' if job.job_type == 'Part-time' }}>Part-time</option>
+                            <option value="Contract" {{ 'selected' if job.job_type == 'Contract' }}>Contract</option>
+                            <option value="Internship" {{ 'selected' if job.job_type == 'Internship' }}>Internship</option>
+                            <option value="Temporary" {{ 'selected' if job.job_type == 'Temporary' }}>Temporary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="experience_required" class="form-label">Experience Required</label>
+                        <input type="text" class="form-control" id="experience_required" name="experience_required" value="{{ job.experience_required or '' }}" placeholder="e.g., 2-5 years">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="deadline" class="form-label">Application Deadline</label>
+                        <input type="date" class="form-control" id="deadline" name="deadline" value="{{ job.deadline.strftime('%Y-%m-%d') if job.deadline else '' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="salary_min" class="form-label">Minimum Salary</label>
+                        <input type="number" class="form-control" id="salary_min" name="salary_min" step="0.01" value="{{ job.salary_min or '' }}" placeholder="e.g., 50000">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="salary_max" class="form-label">Maximum Salary</label>
+                        <input type="number" class="form-control" id="salary_max" name="salary_max" step="0.01" value="{{ job.salary_max or '' }}" placeholder="e.g., 80000">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Job Description *</label>
+                    <textarea class="form-control" id="description" name="description" rows="6" required>{{ job.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="requirements" class="form-label">Requirements</label>
+                    <textarea class="form-control" id="requirements" name="requirements" rows="4">{{ job.requirements or '' }}</textarea>
+                </div>
+                <!-- Government Job Specific Fields -->
+                <div id="governmentFields" style="display: {{ 'block' if job.job_category == 'Government' else 'none' }};">
+                    <hr class="my-4">
+                    <h5 class="fw-bold mb-3 text-primary">
+                        <i class="bi bi-building me-2"></i>Government Job Details
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="age_limit" class="form-label">Age Limit</label>
+                            <input type="text" class="form-control" id="age_limit" name="age_limit" value="{{ job.age_limit or '' }}" placeholder="e.g., 18-30 years, 21-35 years">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="pay_scale" class="form-label">Pay Scale</label>
+                            <input type="text" class="form-control" id="pay_scale" name="pay_scale" value="{{ job.pay_scale or '' }}" placeholder="e.g., Level 5, Rs. 29,200 - Rs. 92,300">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="application_start_date" class="form-label">Application Start Date</label>
+                            <input type="date" class="form-control" id="application_start_date" name="application_start_date" value="{{ job.application_start_date.strftime('%Y-%m-%d') if job.application_start_date else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="application_end_date" class="form-label">Application End Date</label>
+                            <input type="date" class="form-control" id="application_end_date" name="application_end_date" value="{{ job.application_end_date.strftime('%Y-%m-%d') if job.application_end_date else '' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exam_pattern" class="form-label">Exam Pattern & Selection Stages</label>
+                        <textarea class="form-control" id="exam_pattern" name="exam_pattern" rows="4" placeholder="e.g., Prelims + Mains + Interview&#10;Prelims: Objective type, 100 questions&#10;Mains: Descriptive type&#10;Interview: Personal interview">{{ job.exam_pattern or '' }}</textarea>
+                        <small class="text-muted">Describe the selection process: Written exams, Physical tests, Document verification, Interviews, etc.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="official_notification_link" class="form-label">Official Notification PDF Link</label>
+                        <input type="url" class="form-control" id="official_notification_link" name="official_notification_link" value="{{ job.official_notification_link or '' }}" placeholder="https://example.com/notification.pdf">
+                    </div>
+                    <div class="mb-3">
+                        <label for="official_website_link" class="form-label">Official Application Website Link</label>
+                        <input type="url" class="form-control" id="official_website_link" name="official_website_link" value="{{ job.official_website_link or '' }}" placeholder="https://example.com/apply">
+                        <small class="text-muted">This is where users will be redirected when they click Apply</small>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ 'checked' if job.is_active }}>
+                        <label class="form-check-label" for="is_active">
+                            <strong>Active</strong> (Job is visible to users)
+                        </label>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>Update Job
+                    </button>
+                    <a href="{{ url_for('admin_jobs') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const jobCategorySelect = document.getElementById('job_category');
+    const governmentFields = document.getElementById('governmentFields');
+    const officialWebsiteLink = document.getElementById('official_website_link');
+    
+    function toggleGovernmentFields() {
+        if (jobCategorySelect.value === 'Government') {
+            governmentFields.style.display = 'block';
+            officialWebsiteLink.required = true;
+        } else {
+            governmentFields.style.display = 'none';
+            officialWebsiteLink.required = false;
+        }
+    }
+    
+    jobCategorySelect.addEventListener('change', toggleGovernmentFields);
+});
+</script>
+{% endblock %}

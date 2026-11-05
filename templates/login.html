@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-5">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Welcome Back</h2>
+                <p class="text-muted">Login to access your account</p>
+            </div>
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="username" name="username" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control border-start-0" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </button>
+                <div class="text-center">
+                    <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}" class="text-primary fw-semibold">Register here</a></p>
+                    <a href="{{ url_for('admin_login') }}" class="text-muted small d-block mt-2">Admin Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

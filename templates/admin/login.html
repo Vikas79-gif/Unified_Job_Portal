@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-5">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3" style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--teal-primary) 100%);">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Admin Portal</h2>
+                <p class="text-muted">Secure admin access</p>
+            </div>
+            <form method="POST" action="{{ url_for('admin_login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Admin Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-person-shield"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="username" name="username" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-lock-fill"></i>
+                        </span>
+                        <input type="password" class="form-control border-start-0" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                    <i class="bi bi-shield-check me-2"></i>Login as Admin
+                </button>
+                <div class="text-center">
+                    <a href="{{ url_for('login') }}" class="text-muted small">Regular User Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

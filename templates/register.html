@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-6">
+        <div class="premium-card">
+            <div class="text-center mb-4">
+                <div class="premium-card-icon mx-auto mb-3" style="background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-light) 100%);">
+                    <i class="bi bi-person-plus"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Create Account</h2>
+                <p class="text-muted">Join thousands of job seekers</p>
+            </div>
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="username" name="username" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control border-start-0" id="email" name="email" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-person-badge"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="full_name" name="full_name" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-phone"></i>
+                        </span>
+                        <input type="tel" class="form-control border-start-0" id="phone" name="phone">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control border-start-0" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-teal w-100 btn-lg mb-3">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+                <div class="text-center">
+                    <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}" class="text-primary fw-semibold">Login here</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
