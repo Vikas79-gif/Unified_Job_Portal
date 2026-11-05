@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Unified Job Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold">My Dashboard</h1>
+    <div>
+        <a href="{{ url_for('upload_resume') }}" class="btn btn-primary me-2">
+            <i class="bi bi-upload me-2"></i>Upload Resume
+        </a>
+        <a href="{{ url_for('job_alerts') }}" class="btn btn-teal">
+            <i class="bi bi-bell me-2"></i>Job Alerts
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="admin-widget">
+            <div class="admin-widget-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ applications|length }}</h3>
+            <p class="text-muted mb-0">Total Applications</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-widget">
+            <div class="admin-widget-icon" style="background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-light) 100%);">
+                <i class="bi bi-file-earmark-check"></i>
+            </div>
+            <h3 class="fw-bold mb-1">
+                {% if current_user.resume_path %}
+                    <i class="bi bi-check-circle text-success"></i>
+                {% else %}
+                    <i class="bi bi-x-circle text-warning"></i>
+                {% endif %}
+            </h3>
+            <p class="text-muted mb-0">{{ 'Resume Uploaded' if current_user.resume_path else 'No Resume' }}</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-widget">
+            <div class="admin-widget-icon" style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--teal-primary) 100%);">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <h6 class="fw-bold mb-1">{{ current_user.full_name or current_user.username }}</h6>
+            <p class="text-muted mb-0 small">{{ current_user.email }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- My Applications -->
+<div class="premium-card">
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-briefcase me-2 text-primary"></i>My Applications
+    </h3>
+    {% if applications %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <tr>
+                        <td>
+                            <strong>{{ application.job.title }}</strong>
+                        </td>
+                        <td>{{ application.job.company }}</td>
+                        <td>{{ application.applied_at.strftime('%B %d, %Y') }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if application.status == 'Accepted' else 'warning' if application.status == 'Shortlisted' else 'danger' if application.status == 'Rejected' else 'secondary' }} px-3 py-2">
+                                {{ application.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('job_detail', job_id=application.job.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>View Job
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+            <p class="text-muted mb-4">You haven't applied for any jobs yet.</p>
+            <a href="{{ url_for('jobs') }}" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>Browse Jobs
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
