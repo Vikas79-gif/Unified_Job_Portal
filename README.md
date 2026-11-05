@@ -2,23 +2,6 @@
 
 A comprehensive job portal that combines both Government and Private job opportunities into a single platform. Built with Python Flask backend and SQLite database.
 
-## Screenshots
-
-![Homepage](screenshots/homepage.png)
-*Job Portal Homepage*
-
-![Dashboard](screenshots/dashboard.png)
-*User Dashboard*
-
-![Admin Panel](screenshots/admin.png)
-*Admin Dashboard*
-
-![Job Listing](screenshots/jobs.png)
-*Job Listings Page*
-
-![Job Application](screenshots/apply.png)
-*Job Application Form*
-
 ## Features
 
 ### Premium UI/UX Design
