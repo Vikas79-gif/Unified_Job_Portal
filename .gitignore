@@ -22,6 +22,11 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pyc
+*.pyo
+*.pyd
+.Python
+requirements.txt
 
 # Flask
 instance/
